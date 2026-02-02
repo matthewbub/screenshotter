@@ -16,6 +16,23 @@ const renderer = await createCliRenderer({
   },
 });
 
+const runScreenshot = async (url: string) => {
+  const browser = await chromium.launch();
+  const page = await browser.newPage({
+    viewport: {
+      width: 1440,
+      height: 900,
+    },
+  });
+
+  await page.goto(url, {
+    waitUntil: "networkidle",
+  });
+  await page.screenshot({ path: "fullpage.png", fullPage: true });
+
+  await browser.close();
+};
+
 const inputUrl = Input({
   id: "url",
   placeholder: "Enter the full URL (including https://)",
@@ -36,30 +53,15 @@ const form = Box(
 inputUrl.focus();
 
 inputUrl.on(InputRenderableEvents.ENTER, (value: string) => {
-  renderer.console.toggle();
-  console.log("Current value: ", value);
+  try {
+    runScreenshot(value).then((result) => console.log(result));
+    renderer.console.toggle();
+
+    console.log("Snapshot captured successfully");
+  } catch (e) {
+    renderer.console.toggle();
+    console.log(e);
+  }
 });
 
 renderer.root.add(form);
-
-/* 
-  *
-  * (async () => {
-
-  const browser = await chromium.launch();
-  const page = await browser.newPage({
-    viewport: {
-      width: 1440,
-      height: 900,
-    },
-  });
-
-  await page.goto("https://yulissaandmatthew.com", {
-    waitUntil: "networkidle",
-  });
-  await page.screenshot({ path: "fullpage.png", fullPage: true });
-
-  await browser.close();
-})();
-
-*/
