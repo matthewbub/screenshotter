@@ -1,0 +1,14 @@
+{
+  "devDependencies": {
+    "playwright": "^1.58.1",
+    "@types/bun": "latest"
+  },
+  "name": "screenshotter",
+  "private": true,
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.1.76"
+  }
+}
