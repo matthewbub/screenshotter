@@ -4,7 +4,6 @@
 
 To install dependencies:
 
-
 ```bash
 bun install
 ```
@@ -14,5 +13,7 @@ To run the screenshotter tool:
 ```bash
 bun ./screenshotter
 ```
+
+the image will generate to this directory and have the URL provided as the filename
 
 This project was created using `bun init` in bun v1.2.22. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
