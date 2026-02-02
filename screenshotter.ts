@@ -28,7 +28,17 @@ const runScreenshot = async (url: string) => {
   await page.goto(url, {
     waitUntil: "networkidle",
   });
-  await page.screenshot({ path: "fullpage.png", fullPage: true });
+  const fileBaseName = url
+    .replace(/^https?:\/\//, "")
+    .replace(/\/$/, "")
+    .replace(/[\/?#&=:%]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .trim();
+
+  const fileName = fileBaseName.length > 0 ? `${fileBaseName}.png` : "screenshot.png";
+
+  await page.screenshot({ path: fileName, fullPage: true });
 
   await browser.close();
 };
