@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import type { ImageDiffResult } from "../src/diff.js";
 import { executeCli } from "../src/cli.js";
 
 function createWriters() {
@@ -24,12 +25,16 @@ test("shows help output", async () => {
 
   const exitCode = await executeCli(["--help"], {
     version: "1.2.3",
+    diffImages: async () => {
+      throw new Error("diff should not run");
+    },
     writeOut: writers.writeOut,
     writeErr: writers.writeErr,
   });
 
   assert.equal(exitCode, 0);
-  assert.match(writers.stdout.join(""), /Usage: screenshotter \[options\] <url>/);
+  assert.match(writers.stdout.join(""), /Usage: screenshotter \[options\] \[command\] <url>/);
+  assert.match(writers.stdout.join(""), /diff \[options\] <beforeImage> <afterImage>/);
 });
 
 test("rejects a missing url argument", async () => {
@@ -37,6 +42,9 @@ test("rejects a missing url argument", async () => {
 
   const exitCode = await executeCli([], {
     version: "1.2.3",
+    diffImages: async () => {
+      throw new Error("diff should not run");
+    },
     writeOut: writers.writeOut,
     writeErr: writers.writeErr,
   });
@@ -51,6 +59,9 @@ test("rejects unsupported protocols", async () => {
   const exitCode = await executeCli(["ftp://example.com"], {
     capture: async () => {
       throw new Error("capture should not run");
+    },
+    diffImages: async () => {
+      throw new Error("diff should not run");
     },
     version: "1.2.3",
     writeOut: writers.writeOut,
@@ -70,6 +81,9 @@ test("passes a normalized url to the capture step", async () => {
       capturedUrls.push(url);
       return "example.com.png";
     },
+    diffImages: async () => {
+      throw new Error("diff should not run");
+    },
     version: "1.2.3",
     writeOut: writers.writeOut,
     writeErr: writers.writeErr,
@@ -78,4 +92,56 @@ test("passes a normalized url to the capture step", async () => {
   assert.equal(exitCode, 0);
   assert.deepEqual(capturedUrls, ["https://example.com/"]);
   assert.match(writers.stdout.join(""), /Saved screenshot to example\.com\.png/);
+});
+
+test("runs the diff command with the requested output path", async () => {
+  const writers = createWriters();
+  const diffCalls: Array<{
+    beforeImage: string;
+    afterImage: string;
+    outputPath?: string;
+  }> = [];
+
+  const exitCode = await executeCli(
+    ["diff", "before.png", "after.png", "--output", "result.png"],
+    {
+      capture: async () => {
+        throw new Error("capture should not run");
+      },
+      diffImages: async (
+        beforeImage,
+        afterImage,
+        options,
+      ): Promise<ImageDiffResult> => {
+        diffCalls.push({
+          beforeImage,
+          afterImage,
+          outputPath: options?.outputPath,
+        });
+
+        return {
+          outputPath: options?.outputPath ?? "diff.png",
+          mismatchPixels: 5,
+          totalPixels: 100,
+          diffRatio: 0.05,
+          width: 10,
+          height: 10,
+        };
+      },
+      version: "1.2.3",
+      writeOut: writers.writeOut,
+      writeErr: writers.writeErr,
+    },
+  );
+
+  assert.equal(exitCode, 0);
+  assert.deepEqual(diffCalls, [
+    {
+      beforeImage: "before.png",
+      afterImage: "after.png",
+      outputPath: "result.png",
+    },
+  ]);
+  assert.match(writers.stdout.join(""), /Saved diff to result\.png/);
+  assert.match(writers.stdout.join(""), /Changed pixels: 5\/100 \(5\.00%\)/);
 });

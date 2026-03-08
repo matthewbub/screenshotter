@@ -2,12 +2,18 @@ import { Command, CommanderError } from "commander";
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
+import { diffPngImages, type ImageDiffResult } from "./diff.js";
 import { captureScreenshot, normalizeScreenshotUrl } from "./screenshot.js";
 
 type OutputWriter = (text: string) => void;
 
 export type CliDependencies = {
   capture: (url: string) => Promise<string>;
+  diffImages: (
+    beforeImagePath: string,
+    afterImagePath: string,
+    options?: { outputPath?: string },
+  ) => Promise<ImageDiffResult>;
   writeOut: OutputWriter;
   writeErr: OutputWriter;
   version: string;
@@ -25,6 +31,7 @@ function readVersion(): string {
 function getDefaultDependencies(): CliDependencies {
   return {
     capture: captureScreenshot,
+    diffImages: diffPngImages,
     writeOut: (text) => process.stdout.write(text),
     writeErr: (text) => process.stderr.write(text),
     version: readVersion(),
@@ -39,9 +46,11 @@ export function createProgram(overrides: Partial<CliDependencies> = {}): Command
 
   const program = new Command()
     .name("screenshotter")
-    .description("Capture a full-page screenshot of a URL.")
+    .description("Capture screenshots and diff PNG images.")
     .version(dependencies.version)
-    .showHelpAfterError()
+    .showHelpAfterError();
+
+  program
     .argument("<url>", "URL to capture")
     .action(async (inputUrl: string) => {
       const normalizedUrl = normalizeScreenshotUrl(inputUrl);
@@ -49,6 +58,29 @@ export function createProgram(overrides: Partial<CliDependencies> = {}): Command
 
       dependencies.writeOut(`Saved screenshot to ${fileName}\n`);
     });
+
+  program
+    .command("diff")
+    .description("Compare two PNG images and highlight differences in red.")
+    .argument("<beforeImage>", "Baseline PNG image")
+    .argument("<afterImage>", "Updated PNG image")
+    .option("-o, --output <path>", "Output path for the diff image", "diff.png")
+    .action(
+      async (
+        beforeImage: string,
+        afterImage: string,
+        options: { output: string },
+      ) => {
+        const result = await dependencies.diffImages(beforeImage, afterImage, {
+          outputPath: options.output,
+        });
+
+        dependencies.writeOut(`Saved diff to ${result.outputPath}\n`);
+        dependencies.writeOut(
+          `Changed pixels: ${result.mismatchPixels}/${result.totalPixels} (${(result.diffRatio * 100).toFixed(2)}%)\n`,
+        );
+      },
+    );
 
   program.configureOutput({
     writeOut: dependencies.writeOut,
