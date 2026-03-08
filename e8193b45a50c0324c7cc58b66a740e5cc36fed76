@@ -1,0 +1,27 @@
+tsconfig.json
+  bcf210c213f78842 3-7,13-16
+README.md
+  bcf210c213f78842 3,5,8,11,13-17,20,23-29,31
+package.json
+  bcf210c213f78842 3,5-8,10-14,17-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "e8193b45a50c0324c7cc58b66a740e5cc36fed76",
+  "prompts": {
+    "bcf210c213f78842": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ccc5d-6b51-78e3-8f3f-f096e1cf6a56",
+        "model": "gpt-5.4"
+      },
+      "human_author": "matéo! <6matbub@gmail.com>",
+      "messages": [],
+      "total_additions": 46,
+      "total_deletions": 112,
+      "accepted_lines": 46,
+      "overriden_lines": 0
+    }
+  }
+}
