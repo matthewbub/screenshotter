@@ -1,7 +1,11 @@
 import { readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { mkdir } from "node:fs/promises";
 
 import pixelmatch from "pixelmatch";
 import { PNG } from "pngjs";
+
+import { ValidationError } from "./errors.js";
 
 export type ImageDiffResult = {
   outputPath: string;
@@ -25,7 +29,7 @@ async function readPngImage(filePath: string): Promise<PNG> {
     return PNG.sync.read(buffer);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Could not read PNG image at ${filePath}: ${message}`);
+    throw new ValidationError(`Could not read PNG image at ${filePath}: ${message}`);
   }
 }
 
@@ -41,7 +45,7 @@ export async function diffPngImages(
     beforeImage.width !== afterImage.width ||
     beforeImage.height !== afterImage.height
   ) {
-    throw new Error(
+    throw new ValidationError(
       `Images must have the same dimensions. Received ${beforeImage.width}x${beforeImage.height} and ${afterImage.width}x${afterImage.height}.`,
     );
   }
@@ -64,6 +68,7 @@ export async function diffPngImages(
   const outputPath = options.outputPath ?? DEFAULT_DIFF_OUTPUT;
   const totalPixels = beforeImage.width * beforeImage.height;
 
+  await mkdir(path.dirname(outputPath), { recursive: true });
   await writeFile(outputPath, PNG.sync.write(diffImage));
 
   return {

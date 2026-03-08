@@ -1,6 +1,10 @@
 # screenshotter
 
-`screenshotter` is a small Playwright-powered CLI that captures a full-page PNG for a URL.
+`screenshotter` now includes three pieces:
+
+- a Playwright-powered CLI for captures and PNG diffs
+- an Express 5 API for storing screenshots and generating diffs
+- a Vite 7 + React 19 interface for capture, compare, and browsing saved assets
 
 ## Install
 
@@ -8,34 +12,63 @@
 pnpm install
 ```
 
-## Run
+## Run The UI And API
 
-Use either of these commands:
+```bash
+pnpm dev
+```
+
+- API: `http://localhost:3000`
+- Web UI: `http://localhost:5173`
+
+To serve the API by itself:
+
+```bash
+pnpm serve
+```
+
+If you want Express to serve the built frontend too:
+
+```bash
+pnpm build:web
+pnpm serve
+```
+
+Generated asset metadata and files are stored under `data/`.
+
+## API Endpoints
+
+- `GET /api/health`
+- `GET /api/assets`
+- `GET /api/assets/:id`
+- `GET /api/assets/:id/file`
+- `POST /api/screenshots` with `{ "url": "https://example.com" }`
+- `POST /api/diffs` with `{ "beforeAssetId": "...", "afterAssetId": "..." }`
+
+## CLI
+
+Capture a page:
 
 ```bash
 pnpm screenshot -- https://example.com
 ```
 
+Or:
+
 ```bash
 pnpm exec screenshotter https://example.com
 ```
 
-The screenshot is written to the current directory and uses the URL as the filename, sanitized to match the previous behavior.
-
-## Diff Two Images
-
-Compare two PNG images and generate a diff image with red-highlighted changes:
+Diff two PNG files:
 
 ```bash
 pnpm exec screenshotter diff before.png after.png --output diff.png
 ```
 
-The diff command reports the changed pixel count and writes the resulting PNG to the output path.
-
-## CLI
+## Verification
 
 ```bash
-screenshotter --help
+pnpm typecheck
+pnpm test
+pnpm build:web
 ```
-
-The root command requires a single `http://` or `https://` URL argument. The `diff` subcommand currently supports PNG inputs.

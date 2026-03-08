@@ -9,20 +9,42 @@
   },
   "scripts": {
     "postinstall": "node scripts/setup-local-bin.mjs",
+    "dev": "concurrently -k -n api,web -c auto \"pnpm dev:api\" \"pnpm dev:web\"",
+    "dev:api": "tsx watch src/api/server.ts",
+    "dev:web": "vite --config apps/web/vite.config.ts",
+    "serve": "tsx src/api/server.ts",
+    "build": "pnpm typecheck && pnpm build:web",
+    "build:web": "vite build --config apps/web/vite.config.ts",
+    "preview:web": "vite preview --config apps/web/vite.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p apps/web/tsconfig.json --noEmit",
     "screenshot": "tsx src/cli.ts",
     "start": "tsx src/cli.ts",
     "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
     "commander": "^14.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
     "pixelmatch": "^7.1.0",
-    "playwright": "^1.58.1"
+    "playwright": "^1.58.1",
+    "pngjs": "^7.0.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "zod": "^4.1.11"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
     "@types/node": "^24.5.2",
     "@types/pngjs": "^6.0.5",
-    "pngjs": "^7.0.0",
+    "@types/react": "^19.2.3",
+    "@types/react-dom": "^19.2.2",
+    "@types/supertest": "^6.0.3",
+    "@vitejs/plugin-react-swc": "^4.1.0",
+    "concurrently": "^9.2.1",
     "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "supertest": "^7.1.4"
   }
 }
