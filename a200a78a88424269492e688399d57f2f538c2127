@@ -1,0 +1,41 @@
+src/screenshot.ts
+  039f63c49270c10b 1-2,4-7,14-46,48-53,60,64,82-94,97,99-100,104-107,110,112-116,118-120,123-127
+package.json
+  039f63c49270c10b 12-19,26-27,29-33,36-37,40-44,46-48
+src/types.ts
+  039f63c49270c10b 1-47
+test/api.test.ts
+  039f63c49270c10b 1-168
+tsconfig.json
+  039f63c49270c10b 14-15,17
+README.md
+  039f63c49270c10b 3,5-7,15-18,21-22,24,27,30-31,33-34,37,39,41-48,50,53,56,58-60,62,65,68-74
+src/diff.ts
+  039f63c49270c10b 2-3,8-9,32,48,71
+src/errors.ts
+  039f63c49270c10b 1-22
+.gitignore
+  039f63c49270c10b 3-4
+src/assets.ts
+  039f63c49270c10b 1-225
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "a200a78a88424269492e688399d57f2f538c2127",
+  "prompts": {
+    "039f63c49270c10b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019cceb2-dfb9-70d0-a601-c29f2e7c7e64",
+        "model": "gpt-5.4"
+      },
+      "human_author": "matéo! <6matbub@gmail.com>",
+      "messages": [],
+      "total_additions": 633,
+      "total_deletions": 39,
+      "accepted_lines": 631,
+      "overriden_lines": 0
+    }
+  }
+}
