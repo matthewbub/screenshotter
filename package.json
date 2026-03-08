@@ -1,14 +1,25 @@
 {
-  "devDependencies": {
-    "playwright": "^1.58.1",
-    "@types/bun": "latest"
-  },
   "name": "screenshotter",
+  "version": "0.1.0",
   "private": true,
-  "peerDependencies": {
-    "typescript": "^5"
+  "type": "module",
+  "packageManager": "pnpm@10.30.1",
+  "bin": {
+    "screenshotter": "./bin/screenshotter.mjs"
+  },
+  "scripts": {
+    "postinstall": "node scripts/setup-local-bin.mjs",
+    "screenshot": "tsx src/cli.ts",
+    "start": "tsx src/cli.ts",
+    "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
-    "@opentui/core": "^0.1.76"
+    "commander": "^14.0.0",
+    "playwright": "^1.58.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
   }
 }

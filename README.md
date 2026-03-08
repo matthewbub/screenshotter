@@ -1,19 +1,31 @@
 # screenshotter
 
-<img width="651" height="413" alt="Screenshot 2026-02-01 at 11 19 40 PM" src="https://github.com/user-attachments/assets/4285e57d-01d7-4cbd-88a8-7f7634e16b60" />
+`screenshotter` is a small Playwright-powered CLI that captures a full-page PNG for a URL.
 
-To install dependencies:
-
-```bash
-bun install
-```
-
-To run the screenshotter tool:
+## Install
 
 ```bash
-bun ./screenshotter
+pnpm install
 ```
 
-the image will generate to this directory and have the URL provided as the filename
+## Run
 
-This project was created using `bun init` in bun v1.2.22. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+Use either of these commands:
+
+```bash
+pnpm screenshot -- https://example.com
+```
+
+```bash
+pnpm exec screenshotter https://example.com
+```
+
+The screenshot is written to the current directory and uses the URL as the filename, sanitized to match the previous behavior.
+
+## CLI
+
+```bash
+screenshotter --help
+```
+
+The CLI requires a single `http://` or `https://` URL argument.
