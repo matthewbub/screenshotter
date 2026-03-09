@@ -12,6 +12,11 @@ const screenshotRequestSchema = z.object({
   url: z.string().trim().min(1, "Please provide a URL."),
 });
 
+const uploadScreenshotRequestSchema = z.object({
+  fileName: z.string().trim().min(1, "Please choose an image to upload."),
+  pngBase64: z.string().trim().min(1, "The uploaded image payload is missing."),
+});
+
 const diffRequestSchema = z.object({
   beforeAssetId: z.string().trim().min(1, "Please select a baseline asset."),
   afterAssetId: z.string().trim().min(1, "Please select an updated asset."),
@@ -96,6 +101,19 @@ export function createApiApp(options: {
     try {
       const payload = screenshotRequestSchema.parse(request.body);
       const asset = await options.assetService.createScreenshot(payload.url);
+
+      response.status(201).json({
+        asset: toPublicAsset(asset),
+      });
+    } catch (error) {
+      next(error instanceof ZodError ? toValidationError(error) : error);
+    }
+  });
+
+  app.post("/api/uploads", async (request, response, next) => {
+    try {
+      const payload = uploadScreenshotRequestSchema.parse(request.body);
+      const asset = await options.assetService.uploadScreenshot(payload);
 
       response.status(201).json({
         asset: toPublicAsset(asset),

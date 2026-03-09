@@ -41,6 +41,7 @@ test("serves health, assets, and file responses", async (t) => {
   const screenshotAsset: AssetRecord = {
     id: "shot-1",
     kind: "screenshot",
+    source: "capture",
     createdAt: "2026-03-08T18:10:00.000Z",
     fileName: "shot-1-example.com.png",
     filePath: screenshotPath,
@@ -81,6 +82,9 @@ test("serves health, assets, and file responses", async (t) => {
       async createScreenshot() {
         return screenshotAsset;
       },
+      async uploadScreenshot() {
+        return screenshotAsset;
+      },
       async createDiff() {
         return diffAsset;
       },
@@ -115,12 +119,26 @@ test("validates screenshot and diff payloads", async () => {
         return {
           id: "shot-1",
           kind: "screenshot",
+          source: "capture",
           createdAt: "2026-03-08T18:10:00.000Z",
           fileName: "shot-1-example.com.png",
           filePath: "/tmp/shot-1-example.com.png",
           width: 2,
           height: 1,
           sourceUrl: url,
+        } satisfies AssetRecord;
+      },
+      async uploadScreenshot(file: { fileName: string; pngBase64: string }) {
+        return {
+          id: "upload-1",
+          kind: "screenshot",
+          source: "upload",
+          createdAt: "2026-03-08T18:10:00.000Z",
+          fileName: "upload-1-upload.png",
+          filePath: "/tmp/upload-1-upload.png",
+          width: 2,
+          height: 1,
+          originalFileName: file.fileName,
         } satisfies AssetRecord;
       },
       async createDiff(beforeAssetId: string, afterAssetId: string) {
@@ -154,6 +172,20 @@ test("validates screenshot and diff payloads", async () => {
     .send({ url: "https://example.com" });
   assert.equal(screenshotResponse.status, 201);
   assert.equal(screenshotResponse.body.asset.kind, "screenshot");
+  assert.equal(screenshotResponse.body.asset.source, "capture");
+
+  const invalidUploadResponse = await request(app)
+    .post("/api/uploads")
+    .send({ fileName: "", pngBase64: "" });
+  assert.equal(invalidUploadResponse.status, 400);
+
+  const uploadResponse = await request(app)
+    .post("/api/uploads")
+    .send({ fileName: "selfie.jpg", pngBase64: "ZmFrZQ==" });
+  assert.equal(uploadResponse.status, 201);
+  assert.equal(uploadResponse.body.asset.kind, "screenshot");
+  assert.equal(uploadResponse.body.asset.source, "upload");
+  assert.equal(uploadResponse.body.asset.originalFileName, "selfie.jpg");
 
   const invalidDiffResponse = await request(app)
     .post("/api/diffs")

@@ -6,7 +6,9 @@ export type Asset = {
   fileUrl: string;
   width: number;
   height: number;
+  source?: "capture" | "upload";
   sourceUrl?: string;
+  originalFileName?: string;
   beforeAssetId?: string;
   afterAssetId?: string;
   mismatchPixels?: number;
@@ -55,6 +57,26 @@ export async function createScreenshot(url: string): Promise<Asset> {
 
   if (!payload.asset) {
     throw new Error("The API did not return a screenshot asset.");
+  }
+
+  return payload.asset;
+}
+
+export async function uploadScreenshot(fileName: string, pngBase64: string): Promise<Asset> {
+  const response = await fetch("/api/uploads", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      fileName,
+      pngBase64,
+    }),
+  });
+  const payload = await expectOk<Asset>(response);
+
+  if (!payload.asset) {
+    throw new Error("The API did not return an uploaded image asset.");
   }
 
   return payload.asset;

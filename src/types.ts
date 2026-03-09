@@ -1,4 +1,5 @@
 export type AssetKind = "screenshot" | "diff";
+export type ScreenshotAssetSource = "capture" | "upload";
 
 type BaseAssetRecord = {
   id: string;
@@ -12,7 +13,9 @@ type BaseAssetRecord = {
 
 export type ScreenshotAssetRecord = BaseAssetRecord & {
   kind: "screenshot";
-  sourceUrl: string;
+  source: ScreenshotAssetSource;
+  sourceUrl?: string;
+  originalFileName?: string;
 };
 
 export type DiffAssetRecord = BaseAssetRecord & {
@@ -32,7 +35,9 @@ type BasePublicAsset = Omit<BaseAssetRecord, "filePath"> & {
 
 export type PublicScreenshotAsset = BasePublicAsset & {
   kind: "screenshot";
-  sourceUrl: string;
+  source: ScreenshotAssetSource;
+  sourceUrl?: string;
+  originalFileName?: string;
 };
 
 export type PublicDiffAsset = BasePublicAsset & {

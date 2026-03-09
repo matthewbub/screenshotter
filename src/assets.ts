@@ -1,9 +1,10 @@
 import { access, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { Buffer } from "node:buffer";
 
 import { diffPngImages } from "./diff.js";
-import { NotFoundError } from "./errors.js";
+import { NotFoundError, ValidationError } from "./errors.js";
 import {
   BrowserManager,
   captureScreenshotToPath,
@@ -17,6 +18,7 @@ import type {
   PublicAsset,
   ScreenshotAssetRecord,
 } from "./types.js";
+import { PNG } from "pngjs";
 
 type AssetIndex = {
   version: 1;
@@ -27,6 +29,7 @@ export type AssetServiceLike = {
   listAssets(): Promise<AssetRecord[]>;
   getAsset(id: string): Promise<AssetRecord>;
   createScreenshot(url: string): Promise<AssetRecord>;
+  uploadScreenshot(input: { fileName: string; pngBase64: string }): Promise<AssetRecord>;
   createDiff(beforeAssetId: string, afterAssetId: string): Promise<AssetRecord>;
 };
 
@@ -51,11 +54,13 @@ export function toPublicAsset(asset: AssetRecord): PublicAsset {
   } as const;
 
   if (asset.kind === "screenshot") {
-    return {
-      ...shared,
-      kind: "screenshot",
-      sourceUrl: asset.sourceUrl,
-    };
+      return {
+        ...shared,
+        kind: "screenshot",
+        source: asset.source,
+        sourceUrl: asset.sourceUrl,
+        originalFileName: asset.originalFileName,
+      };
   }
 
   return {
@@ -178,12 +183,63 @@ export class AssetService implements AssetServiceLike {
     const asset: ScreenshotAssetRecord = {
       id,
       kind: "screenshot",
+      source: "capture",
       createdAt: new Date().toISOString(),
       fileName,
       filePath: screenshot.filePath,
       width: screenshot.width,
       height: screenshot.height,
       sourceUrl: normalizedUrl,
+    };
+
+    await this.store.saveAsset(asset);
+    return asset;
+  }
+
+  async uploadScreenshot(input: {
+    fileName: string;
+    pngBase64: string;
+  }): Promise<ScreenshotAssetRecord> {
+    const originalFileName = input.fileName.trim();
+
+    if (!originalFileName) {
+      throw new ValidationError("Please choose an image to upload.");
+    }
+
+    let buffer: Buffer;
+    try {
+      buffer = Buffer.from(input.pngBase64, "base64");
+    } catch {
+      throw new ValidationError("The uploaded image could not be decoded.");
+    }
+
+    if (buffer.byteLength === 0) {
+      throw new ValidationError("The uploaded image is empty.");
+    }
+
+    let image: PNG;
+    try {
+      image = PNG.sync.read(buffer);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new ValidationError(`The uploaded image is not a valid PNG: ${message}`);
+    }
+
+    const id = randomUUID();
+    const fileName = `${id}-upload.png`;
+    const filePath = path.join(this.store.assetsDir, fileName);
+    await writeFile(filePath, buffer);
+
+    const asset: ScreenshotAssetRecord = {
+      id,
+      kind: "screenshot",
+      source: "upload",
+      createdAt: new Date().toISOString(),
+      fileName,
+      filePath,
+      width: image.width,
+      height: image.height,
+      originalFileName,
     };
 
     await this.store.saveAsset(asset);
