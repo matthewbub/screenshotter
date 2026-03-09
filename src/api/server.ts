@@ -3,7 +3,7 @@ import process from "node:process";
 import { AssetService, AssetStore } from "../assets.js";
 import { createApiApp } from "./app.js";
 
-const port = Number(process.env.PORT ?? "3000");
+const port = Number(process.env.SCREENSHOTTER_API_PORT ?? process.env.PORT ?? "4310");
 const dataDirectory = process.env.SCREENSHOTTER_DATA_DIR;
 
 const assetStore = dataDirectory ? new AssetStore(dataDirectory) : new AssetStore();

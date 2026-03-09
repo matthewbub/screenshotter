@@ -18,8 +18,10 @@ pnpm install
 pnpm dev
 ```
 
-- API: `http://localhost:3000`
-- Web UI: `http://localhost:5173`
+- API: `http://localhost:4310`
+- Web UI: `http://localhost:4173`
+
+You can override those defaults with `SCREENSHOTTER_API_PORT` and `SCREENSHOTTER_WEB_PORT`.
 
 To serve the API by itself:
 

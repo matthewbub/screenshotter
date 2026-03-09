@@ -1,8 +1,9 @@
-import { startTransition, useDeferredValue, useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 
 import { createDiff, createScreenshot, listAssets, uploadScreenshot, type Asset } from "./api";
 
 type Tab = "capture" | "compare";
+type LibraryFilter = "all" | "captures" | "uploads" | "diffs";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat(undefined, {
@@ -54,7 +55,7 @@ export function App() {
   const [beforeAssetId, setBeforeAssetId] = useState("");
   const [afterAssetId, setAfterAssetId] = useState("");
   const [viewerAssetId, setViewerAssetId] = useState("");
-  const [libraryFilter, setLibraryFilter] = useState("");
+  const [libraryFilter, setLibraryFilter] = useState<LibraryFilter>("all");
   const [pageError, setPageError] = useState<string | null>(null);
   const [isLoadingAssets, setIsLoadingAssets] = useState(true);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -62,19 +63,21 @@ export function App() {
   const [isDiffing, setIsDiffing] = useState(false);
   const [lastCapturedId, setLastCapturedId] = useState("");
 
-  const deferredFilter = useDeferredValue(libraryFilter.trim().toLowerCase());
   const screenshotAssets = assets.filter((a) => a.kind === "screenshot");
   const diffAssets = assets.filter((a) => a.kind === "diff");
 
-  const filteredAssets =
-    deferredFilter.length === 0
-      ? assets
-      : assets.filter((a) =>
-          [assetTitle(a), assetSubtitle(a), a.fileName]
-            .join(" ")
-            .toLowerCase()
-            .includes(deferredFilter),
-        );
+  const filteredAssets = assets.filter((asset) => {
+    switch (libraryFilter) {
+      case "captures":
+        return asset.kind === "screenshot" && asset.source === "capture";
+      case "uploads":
+        return asset.kind === "screenshot" && asset.source === "upload";
+      case "diffs":
+        return asset.kind === "diff";
+      default:
+        return true;
+    }
+  });
 
   useEffect(() => {
     async function load() {
@@ -226,13 +229,6 @@ export function App() {
       </header>
 
       <div className="page">
-        {pageError && (
-          <div className="error-banner" role="alert">
-            <strong>Error:</strong> {pageError}
-            <button onClick={() => setPageError(null)} aria-label="Dismiss">✕</button>
-          </div>
-        )}
-
         <div className="tool-card">
           <div className="tool-tabs" role="tablist">
             <button
@@ -397,22 +393,35 @@ export function App() {
           </div>
         </div>
 
+        {pageError && (
+          <div className="error-banner" role="alert">
+            <strong>Error:</strong> {pageError}
+            <button onClick={() => setPageError(null)} aria-label="Dismiss">✕</button>
+          </div>
+        )}
+
         <div className="library-card">
           <div className="library-top">
             <h2 className="library-heading">Library</h2>
-            <input
+            <select
               className="search-input"
-              type="search"
               value={libraryFilter}
-              onChange={(e) => setLibraryFilter(e.target.value)}
-              placeholder="Filter…"
-            />
+              onChange={(e) => setLibraryFilter(e.target.value as LibraryFilter)}
+              aria-label="Filter library"
+            >
+              <option value="all">All assets</option>
+              <option value="captures">Captured screenshots</option>
+              <option value="uploads">Uploaded photos</option>
+              <option value="diffs">Diffs</option>
+            </select>
           </div>
           <div className="library-body">
             {isLoadingAssets && <p className="library-empty">Loading…</p>}
             {!isLoadingAssets && filteredAssets.length === 0 && (
               <p className="library-empty">
-                {libraryFilter ? "No matches." : "Nothing here yet — capture a page to get started."}
+                {libraryFilter === "all"
+                  ? "Nothing here yet — capture a page to get started."
+                  : "No assets in this filter yet."}
               </p>
             )}
             <div className="asset-grid">
@@ -462,6 +471,13 @@ export function App() {
                 </span>
               </div>
               <div className="viewer-topbar-actions">
+                <a
+                  href={viewerAsset.fileUrl}
+                  download={viewerAsset.fileName}
+                  className="btn btn-primary"
+                >
+                  Download
+                </a>
                 <a
                   href={viewerAsset.fileUrl}
                   target="_blank"
