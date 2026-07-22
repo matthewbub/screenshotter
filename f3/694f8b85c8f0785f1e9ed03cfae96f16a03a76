@@ -1,0 +1,31 @@
+src/cli.ts
+  s_5963183e6d3489::t_55f2e9891e7b99 26
+  s_5963183e6d3489::t_12b70bc0e619b2 11
+  s_5963183e6d3489::t_5465ab8cb5ba36 67-72,74-76
+  s_5963183e6d3489::t_d677c6b8287c85 22-25,27-33
+  s_5963183e6d3489::t_fd11923afa0d6e 1
+test/cli.test.ts
+  s_5963183e6d3489::t_0bacffe6eb3de7 97-141
+src/screenshot.ts
+  s_5963183e6d3489::t_f44d0e97f4e9da 87,96,106-108
+  s_5963183e6d3489::t_144adb8b7636c0 130-133,135
+  s_5963183e6d3489::t_cfdc9b3797acbe 109
+README.md
+  s_5963183e6d3489::t_22c905122bbfb7 64-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "f3694f8b85c8f0785f1e9ed03cfae96f16a03a76",
+  "prompts": {},
+  "sessions": {
+    "s_5963183e6d3489": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "387b6c04-d5be-4efe-a6b1-2636cf5060ed",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "matéo! <6matbub@gmail.com>"
+    }
+  }
+}
