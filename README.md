@@ -61,6 +61,12 @@ Or:
 pnpm exec screenshotter https://example.com
 ```
 
+Wait extra time after the page settles before capturing (useful for animations or lazy content):
+
+```bash
+pnpm exec screenshotter https://example.com --delay 2000
+```
+
 Diff two PNG files:
 
 ```bash

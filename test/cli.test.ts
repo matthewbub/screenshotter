@@ -94,6 +94,51 @@ test("passes a normalized url to the capture step", async () => {
   assert.match(writers.stdout.join(""), /Saved screenshot to example\.com\.png/);
 });
 
+test("forwards the delay option to the capture step", async () => {
+  const writers = createWriters();
+  const captureCalls: Array<{ url: string; delayMs?: number }> = [];
+
+  const exitCode = await executeCli(
+    ["https://example.com", "--delay", "500"],
+    {
+      capture: async (url, options) => {
+        captureCalls.push({ url, delayMs: options?.delayMs });
+        return "example.com.png";
+      },
+      diffImages: async () => {
+        throw new Error("diff should not run");
+      },
+      version: "1.2.3",
+      writeOut: writers.writeOut,
+      writeErr: writers.writeErr,
+    },
+  );
+
+  assert.equal(exitCode, 0);
+  assert.deepEqual(captureCalls, [
+    { url: "https://example.com/", delayMs: 500 },
+  ]);
+});
+
+test("rejects a negative delay value", async () => {
+  const writers = createWriters();
+
+  const exitCode = await executeCli(["https://example.com", "--delay", "-5"], {
+    capture: async () => {
+      throw new Error("capture should not run");
+    },
+    diffImages: async () => {
+      throw new Error("diff should not run");
+    },
+    version: "1.2.3",
+    writeOut: writers.writeOut,
+    writeErr: writers.writeErr,
+  });
+
+  assert.notEqual(exitCode, 0);
+  assert.match(writers.stderr.join(""), /non-negative number of milliseconds/);
+});
+
 test("runs the diff command with the requested output path", async () => {
   const writers = createWriters();
   const diffCalls: Array<{

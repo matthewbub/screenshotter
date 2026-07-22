@@ -1,4 +1,4 @@
-import { Command, CommanderError } from "commander";
+import { Command, CommanderError, InvalidArgumentError } from "commander";
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
@@ -8,7 +8,7 @@ import { captureScreenshot, normalizeScreenshotUrl } from "./screenshot.js";
 type OutputWriter = (text: string) => void;
 
 export type CliDependencies = {
-  capture: (url: string) => Promise<string>;
+  capture: (url: string, options?: { delayMs?: number }) => Promise<string>;
   diffImages: (
     beforeImagePath: string,
     afterImagePath: string,
@@ -18,6 +18,18 @@ export type CliDependencies = {
   writeErr: OutputWriter;
   version: string;
 };
+
+function parseDelay(value: string): number {
+  const delayMs = Number(value);
+
+  if (!Number.isFinite(delayMs) || delayMs < 0) {
+    throw new InvalidArgumentError(
+      "Delay must be a non-negative number of milliseconds.",
+    );
+  }
+
+  return delayMs;
+}
 
 function readVersion(): string {
   const packageJsonPath = new URL("../package.json", import.meta.url);
@@ -52,9 +64,16 @@ export function createProgram(overrides: Partial<CliDependencies> = {}): Command
 
   program
     .argument("<url>", "URL to capture")
-    .action(async (inputUrl: string) => {
+    .option(
+      "-d, --delay <ms>",
+      "Extra time in milliseconds to wait after load before capturing",
+      parseDelay,
+    )
+    .action(async (inputUrl: string, options: { delay?: number }) => {
       const normalizedUrl = normalizeScreenshotUrl(inputUrl);
-      const fileName = await dependencies.capture(normalizedUrl);
+      const fileName = await dependencies.capture(normalizedUrl, {
+        delayMs: options.delay,
+      });
 
       dependencies.writeOut(`Saved screenshot to ${fileName}\n`);
     });

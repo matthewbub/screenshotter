@@ -84,6 +84,7 @@ export async function captureScreenshotToPath(
   outputPath: string,
   options: {
     browserManager?: BrowserManagerLike;
+    delayMs?: number;
   } = {},
 ): Promise<{
   filePath: string;
@@ -92,6 +93,7 @@ export async function captureScreenshotToPath(
 }> {
   const browserManager = options.browserManager ?? new BrowserManager();
   const shouldDispose = options.browserManager === undefined;
+  const delayMs = options.delayMs ?? 0;
 
   try {
     await mkdir(path.dirname(outputPath), { recursive: true });
@@ -100,6 +102,10 @@ export async function captureScreenshotToPath(
       await page.goto(url, {
         waitUntil: "networkidle",
       });
+
+      if (delayMs > 0) {
+        await page.waitForTimeout(delayMs);
+      }
 
       return page.screenshot({
         path: outputPath,
@@ -121,8 +127,11 @@ export async function captureScreenshotToPath(
   }
 }
 
-export async function captureScreenshot(url: string): Promise<string> {
+export async function captureScreenshot(
+  url: string,
+  options: { delayMs?: number } = {},
+): Promise<string> {
   const fileName = getScreenshotFileName(url);
-  await captureScreenshotToPath(url, fileName);
+  await captureScreenshotToPath(url, fileName, { delayMs: options.delayMs });
   return fileName;
 }
